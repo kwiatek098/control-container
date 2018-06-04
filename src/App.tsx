@@ -1,39 +1,55 @@
 import * as React from 'react';
-import Container from './areas/control-container/container';
-import SampleControl,{ISampleControlState} from './areas/control-container/sampleControl';
+import { Store } from 'redux';
+import {IAppState} from './common/appState';
+import { Provider } from 'react-redux';
+import {
+  HashRouter as Router,
+  Route
+} from 'react-router-dom';
+import HomePage from './areas/home/homePage';
 
-export default class App extends React.Component<{},{someValue:string}>
+interface IAppComponentProps {
+  store: Store<IAppState>;
+}
+
+interface IError {
+  name: string;
+  message: string;
+  stack?: string;
+}
+
+interface IAppComponentState {
+  error: IError|null
+  errorInfo: React.ErrorInfo|null
+}
+
+export default class App extends React.Component<IAppComponentProps,IAppComponentState>
 {
   constructor(props: any) {
     super(props);
 
     this.state = {
-      someValue: ""
+        error: null,
+      errorInfo: null  
     }
   }
 
-  public render(){
-    const children: JSX.Element[]= [];
-    children.push(<SampleControl saveToRedux={false} onStateChange={this.onStateChange} key='fName' newState ={{controlValue: this.state.someValue}} />)
-    children.push(<SampleControl saveToRedux={false} onStateChange={this.onStateChange} key='lName'/>)
+  public componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    this.setState((s) => s.error === error ? null : ({
+      error, errorInfo
+    }))
+  }
 
+  public render(){
     return (
-      <div>
-      <Container>
-        {children}
-      </Container>
-      <button onClick={this.onClick}>Click</button>
-      </div>
-    );
+      <Provider store={this.props.store}>
+          <Router>
+              <Route path="/" strict={true} exact={true} component={HomePage} />
+          </Router>
+      </Provider> )
   }
  
-  public onStateChange = (newState: ISampleControlState,key: string) =>{
-    // console.log(newState)
-  }
 
-  private onClick =(e: any)=>{
-    this.setState({someValue: "dupa"})
-  }
 }
 
 
